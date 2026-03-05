@@ -395,3 +395,208 @@ Yes: all PCs behind the same switch can ping each other (Layer‑2 switching).
 All devices in subnet 1 and subnet 2 communicate?
 Yes: any PC in 192.168.1.0/24 can ping any PC in 192.168.2.0/24 via the router.
 
+Exercise 6 – Two routers with one PC each
+Goal
+Two subnets, each with one PC and one router; routers connected via a point‑to‑point link.
+
+Use static routes to enable communication.
+
+Topology and addressing
+PC1 ↔ Router1 (Fa0/0).
+
+Router1 ↔ Router2 (Serial or FastEthernet, depending on the subject; here I describe the Serial version because we used the red automatic serial cable).
+
+Router2 ↔ PC2 (Fa0/1).
+
+Subnets (example):
+
+Subnet 1 (PC1 side): 192.168.1.0/24
+
+Router1 Fa0/0: 192.168.1.1/24
+
+PC1: 192.168.1.2/24, gateway 192.168.1.1.
+
+Router–router link: 10.10.0.0/30
+
+Router1 Serial2/0: 10.10.0.1/30 (DCE, with clock rate 64000).
+
+Router2 Serial2/0: 10.10.0.2/30.
+
+Subnet 2 (PC2 side): 192.168.2.0/24
+
+Router2 Fa0/1: 192.168.2.1/24
+
+PC2: 192.168.2.2/24, gateway 192.168.2.1.
+
+Router1 configuration
+text
+enable
+configure terminal
+
+interface FastEthernet0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+exit
+
+interface Serial2/0
+ ip address 10.10.0.1 255.255.255.252
+ clock rate 64000
+ no shutdown
+exit
+
+ip route 192.168.2.0 255.255.255.0 10.10.0.2
+end
+Router2 configuration
+text
+enable
+configure terminal
+
+interface Serial2/0
+ ip address 10.10.0.2 255.255.255.252
+ no shutdown
+exit
+
+interface FastEthernet0/1
+ ip address 192.168.2.1 255.255.255.0
+ no shutdown
+exit
+
+ip route 192.168.1.0 255.255.255.0 10.10.0.1
+end
+Audit answers
+Devices/links/IPs/netmasks similar?
+Yes: two routers, two /24 LANs, one /30 point‑to‑point link.
+
+PC in subnet 1 communicates with PC in subnet 2 and vice versa?
+Yes: PC1 ping 192.168.2.2, and PC2 ping 192.168.1.2, both succeed.
+
+Routing table and its role?
+A routing table is the list of known networks and next hops that a router uses to forward packets.
+
+Directly connected networks are added automatically.
+
+Static or dynamic routes define how to reach remote networks.
+The router consults this table for every packet to choose the correct outgoing interface.
+
+Exercise 7 – Two LANs, two routers (larger version)
+Goal
+Similar to ex06 but with multiple PCs on each side.
+
+All hosts on the same switch communicate; all devices in subnet 1 can reach all devices in subnet 2 and the other way around.
+
+Student must be able to recreate the network from scratch.
+
+Topology and addressing (example)
+PC LAN 1 → Switch1 → Router1 Fa0/0.
+
+Router1 ↔ Router2 via point‑to‑point link (Serial or FastEthernet).
+
+Router2 Fa0/0 → Switch2 → PC LAN 2.
+
+Subnets:
+
+Subnet 1: 192.168.10.0/24
+
+Router1 Fa0/0: 192.168.10.1/24
+
+PCs on LAN1: 192.168.10.2–192.168.10.50/24, gateway 192.168.10.1.
+
+Router–router: 10.0.0.0/30
+
+Router1 Serial2/0: 10.0.0.1/30 (DCE).
+
+Router2 Serial2/0: 10.0.0.2/30.
+
+Subnet 2: 192.168.20.0/24
+
+Router2 Fa0/0: 192.168.20.1/24.
+
+PCs on LAN2: 192.168.20.2–192.168.20.50/24, gateway 192.168.20.1.
+
+Router config is the same pattern as ex06, but with more PCs behind each router.
+
+Audit answers
+Devices/links/IPs/netmasks similar?
+Yes: two routers, two switches, two /24 LANs, /30 link.
+
+All devices on same switch communicate?
+Yes: ping tests show full connectivity within each LAN.
+
+All devices in subnet 1 ↔ subnet 2?
+Yes: static routes configured on both routers; any host in 192.168.10.0/24 reaches any host in 192.168.20.0/24.
+
+Recreate the network without external tools?
+I practiced rebuilding ex07 from an empty Packet Tracer file using only the subject diagram and this README: add devices, wire them, set IPs, configure routes, and verify pings.
+
+Exercise 8 – Three subnets (full mesh via routing)
+Goal
+Three different subnets interconnected so that all devices in any subnet can reach all devices in the others.
+
+Usually a router with 3 interfaces or multiple routers depending on the subject picture.
+
+Example topology (single router with 3 interfaces)
+Router with Fa0/0, Fa0/1, Fa0/2 each going to a separate switch and subnet.
+
+Subnets:
+
+Subnet 1: 192.168.10.0/24
+
+Router Fa0/0: 192.168.10.1/24
+
+PCs: 192.168.10.x/24, gateway 192.168.10.1.
+
+Subnet 2: 192.168.20.0/24
+
+Router Fa0/1: 192.168.20.1/24
+
+PCs: 192.168.20.x/24, gateway 192.168.20.1.
+
+Subnet 3: 192.168.30.0/24
+
+Router Fa0/2: 192.168.30.1/24
+
+PCs: 192.168.30.x/24, gateway 192.168.30.1.
+
+Router configuration
+text
+enable
+configure terminal
+
+interface FastEthernet0/0
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+exit
+
+interface FastEthernet0/1
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+exit
+
+interface FastEthernet0/2
+ ip address 192.168.30.1 255.255.255.0
+ no shutdown
+exit
+
+end
+Because all 3 networks are directly connected to the same router, no static routes are needed: the router already knows all three.
+
+Audit answers
+Devices/links/IPs/netmasks similar?
+Yes: one router with 3 interfaces (or the multi‑router design from the subject), three /24 LANs.
+
+All devices on each switch communicate?
+Yes: each subnet’s PCs can ping each other.
+
+All devices in subnet 1 ↔ subnet 2, subnet 1 ↔ subnet 3, subnet 2 ↔ subnet 3?
+Yes: any PC in any subnet can ping any PC in the others via the router.
+
+Documentation requirement
+The README you are reading:
+
+Explains the knowledge learned in each exercise (cabling types, switches vs hubs, servers and protocols, routing, static routes, routing tables, OSI layers).
+
+Describes the exact steps needed to recreate every network: devices, cabling, IP addressing, and router/server configuration.
+
+Answers the conceptual questions from the audit (RJ‑45, DHCP, DNS, ports, TCP/UDP, routing table, etc.).
+
+Together with the .pkt files, this should satisfy the final “Check the Documentation” and “Repo content” audit items.
